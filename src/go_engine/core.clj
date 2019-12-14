@@ -1,5 +1,7 @@
 (ns go-engine.core
-  (:gen-class))
+  (:gen-class)
+  (:require [clojure2d.core :refer :all]
+            [clojure2d.color :as c]))
 
 (defrecord GoGame [matrix turn])
 
@@ -99,12 +101,45 @@
 
 (defn handle-move
   "Attempts to place a stone of the current player's color at the requested location.
-   Returns a 2-element vector containing the updated game state and
-   a bool representing whether the move was valid."
+   Returns the updated game. If the requested move is invalid, the game is returned unchanged."
   [game [x y]]
   nil)
 
+;; define canvas
+(def my-canvas (canvas 900 900))
+
+;; create window
+(def window (show-window my-canvas "Hello World!"))
+
+(defn draw-board
+  [matrix]
+  (let [dim (count matrix)
+        cell-width (/ 900 dim)
+        padding (/ cell-width 2)
+        board-width (* cell-width (dec dim))
+        stone-radius (* 0.45 cell-width)]
+    (with-canvas [c my-canvas] ;; prepare drawing context in canvas
+      (translate c padding padding)
+      (set-background c :yellow) ;; clear background
+      (set-color c :black) ;; set color
+      (set-stroke c 2.0) ;; set line width
+
+      ;; draw gridlines
+      (doseq [x (range dim)]
+        (line c (* cell-width x) 0 (* cell-width x) board-width)
+        (line c 0 (* cell-width x) board-width (* cell-width x)))
+
+      ;; draw stones
+      (doseq [x (range dim)
+              y (range dim)]
+        (let [stone-color (get-at-coord matrix [x y])]
+          (if-not (= stone-color :empty)
+            (do (set-color c stone-color)
+                (ellipse c (* cell-width x) (* cell-width y) stone-radius stone-radius))))))))
+
 (defn -main
-  "I don't do a whole lot ... yet."
   [& args]
-  (println "Hello, World!"))
+  (do
+    (draw-board [[:black :black :white]
+                 [:white :white :black]
+                 [:empty :empty :white]])))
