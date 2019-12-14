@@ -34,3 +34,12 @@
   (is (= (is-completely-surrounded test-board-3by3 [2 2]) true))
   (is (= (is-completely-surrounded test-board-3by3 [1 1]) false))
   (is (= (is-completely-surrounded test-board-3by3 [2 0]) false)))
+
+(deftest get-connected-component-test
+  (is (= (get-connected-component test-board-3by3 [0 0]) #{[0 0] [0 1] [1 1]}))
+  (is (= (get-connected-component test-board-3by3 [0 1]) #{[0 0] [0 1] [1 1]}))
+  (is (= (get-connected-component test-board-3by3 [1 1]) #{[0 0] [0 1] [1 1]}))
+  
+  (is (= (get-connected-component test-board-3by3 [2 0]) #{[2 0] [2 1]}))
+  (is (= (get-connected-component test-board-3by3 [1 2]) #{[1 2] [0 2]}))
+  (is (= (get-connected-component test-board-3by3 [2 2]) #{[2 2]})))

@@ -46,7 +46,17 @@
 
 (defn get-connected-component
   "Returns a set of coordinates representing all of the stones connected to the stone at [x y]"
-  [matrix [x y]])
+  [matrix [x y]]
+  (loop [stack (list [x y])
+         visited #{}]
+    (cond (empty? stack) visited
+          (visited (first stack)) (recur (rest stack) visited) ; don't re-explore nodes
+          :else (let [curr (first stack)
+                      popped-stack (rest stack)
+                      neighbors (get-same-colored-neighbors matrix curr)
+                      new-stack (into popped-stack neighbors)
+                      new-visited (conj visited curr)]
+                  (recur new-stack new-visited)))))
 
 (defn is-component-choked
   "Determines whether the component is choked (no adjacent empty cells)
