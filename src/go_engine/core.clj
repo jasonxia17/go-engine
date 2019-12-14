@@ -109,7 +109,9 @@
 (def my-canvas (canvas 900 900))
 
 ;; create window
-(def window (show-window my-canvas "Hello World!"))
+(def window (show-window {:canvas my-canvas 
+                          :window-name "Go!"
+                          :state (create-new-game 19)}))
 
 (defn draw-board
   [matrix]
@@ -139,7 +141,12 @@
 
 (defn -main
   [& args]
-  (do
-    (draw-board [[:black :black :white]
-                 [:white :white :black]
-                 [:empty :empty :white]])))
+  (defmethod mouse-event ["Go!" :mouse-pressed] [e game-state] ;; event on mouse click
+    (let [dim (count (:matrix game-state))
+          cell-width (/ 900 dim)
+          padding (/ cell-width 2)
+          x-coord (Math/round (double (/ (- (mouse-x e) padding) cell-width)))
+          y-coord (Math/round (double (/ (- (mouse-y e) padding) cell-width)))]
+      (draw-board (:matrix game-state))
+      (println (str x-coord ", " y-coord))
+      game-state)))
