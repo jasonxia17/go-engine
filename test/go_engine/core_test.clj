@@ -25,3 +25,12 @@
   (is (= (set (get-neighbors test-board-3by3 [2 0])) #{[1 0] [2 1]}))
   (is (= (set (get-neighbors test-board-3by3 [1 2])) #{[0 2] [1 1] [2 2]}))
   (is (= (set (get-neighbors test-board-3by3 [1 1])) #{[1 0] [0 1] [1 2] [2 1]})))
+
+(deftest get-same-colored-neighbors-test
+  (is (= (set (get-same-colored-neighbors test-board-3by3 [0 1])) #{[0 0] [1 1]})))
+
+(deftest is-completely-surrounded-test
+  (is (= (is-completely-surrounded test-board-3by3 [0 1]) true))
+  (is (= (is-completely-surrounded test-board-3by3 [2 2]) true))
+  (is (= (is-completely-surrounded test-board-3by3 [1 1]) false))
+  (is (= (is-completely-surrounded test-board-3by3 [2 0]) false)))

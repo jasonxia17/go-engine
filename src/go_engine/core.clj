@@ -36,11 +36,13 @@
   (filter #(is-in-bounds matrix %) (list [(dec x) y] [(inc x) y] [x (dec y)] [x (inc y)])))
 
 (defn get-same-colored-neighbors
-  [matrix [x y]])
+  [matrix [x y]]
+  (filter #(= (get-at-coord matrix [x y]) (get-at-coord matrix %)) (get-neighbors matrix [x y])))
 
 (defn is-completely-surrounded
   "Returns true if [x y] has no empty cells adjacent to it"
-  [matrix [x y]])
+  [matrix [x y]]
+  (every? #(not= :empty (get-at-coord matrix %)) (get-neighbors matrix [x y])))
 
 (defn get-connected-component
   "Returns a set of coordinates representing all of the stones connected to the stone at [x y]"
