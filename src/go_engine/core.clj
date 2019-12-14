@@ -1,7 +1,7 @@
 (ns go-engine.core
   (:gen-class)
   (:require [clojure2d.core :refer :all]
-            [clojure2d.color :as c]))
+            [clojure2d.color :as color]))
 
 (defrecord GoGame [matrix turn])
 
@@ -114,25 +114,38 @@
                     game ; move is invalid if resulting component has no liberties, return unchanged game
                     (GoGame. new-board (opposite-color turn)))))))
 
+(defn is-move-valid
+  [game [x y]]
+  (not= (:turn (handle-move game [x y])) (:turn game)))
+
+;; Everything below here is UI
+
 ;; create window
 (def window (show-window {:canvas (canvas 900 900)
                           :window-name "Go!"
                           :state (create-new-game 19)}))
 
+(defn transparent-color
+  [color]
+  (case color
+    :black (color/set-alpha :black 140)
+    :white (color/set-alpha :white 190)
+    (println "Transparent color: Invalid argument provided!")))
+
 (defn draw-board
-  [matrix]
-  (let [c (canvas 900 900)
+  [game hover-point]
+  (let [matrix (:matrix game)
         dim (count matrix)
         cell-width (/ 900 dim)
         padding (/ cell-width 2)
         board-width (* cell-width (dec dim))
         stone-radius (* 0.8 cell-width)]
-    (with-canvas [c c] ;; prepare drawing context in canvas
+    (with-canvas [c (canvas 900 900)] ;; prepare drawing context in canvas
       (translate c padding padding)
       (set-background c :yellow) ;; clear background
       (set-color c :black) ;; set color
       (set-stroke c 2.0) ;; set line width
-      
+
       ;; draw gridlines
       (doseq [x (range dim)]
         (line c (* cell-width x) 0 (* cell-width x) board-width)
@@ -144,19 +157,37 @@
         (let [stone-color (get-at-coord matrix [x y])]
           (if-not (= stone-color :empty)
             (do (set-color c stone-color)
-                (ellipse c (* cell-width x) (* cell-width y) stone-radius stone-radius))))))
-    (replace-canvas window c)))
+                (ellipse c (* cell-width x) (* cell-width y) stone-radius stone-radius)))))
+
+      ;; draw hover effect
+      (when hover-point
+        (set-color c (transparent-color (:turn game)))
+        (ellipse c (* cell-width (hover-point 0)) (* cell-width (hover-point 1)) stone-radius stone-radius))
+
+      (replace-canvas window c))))
+
+(defn mouse-event-to-coord
+  "Converts a mouse event to the coordinates of the nearest interesection on the board."
+  [game-state e]
+  (let [dim (count (:matrix game-state))
+        cell-width (/ 900 dim)
+        padding (/ cell-width 2)
+        x-coord (Math/round (double (/ (- (mouse-x e) padding) cell-width)))
+        y-coord (Math/round (double (/ (- (mouse-y e) padding) cell-width)))]
+    [x-coord y-coord]))
 
 (defn -main
   [& args]
-  (draw-board (:matrix (get-state window)))
-  
+  (draw-board (get-state window) nil)
+
   (defmethod mouse-event ["Go!" :mouse-pressed] [e game-state] ;; event on mouse click
-    (let [dim (count (:matrix game-state))
-          cell-width (/ 900 dim)
-          padding (/ cell-width 2)
-          x-coord (Math/round (double (/ (- (mouse-x e) padding) cell-width)))
-          y-coord (Math/round (double (/ (- (mouse-y e) padding) cell-width)))
-          updated-game (handle-move game-state [x-coord y-coord])]
-      (draw-board (:matrix updated-game))
-      updated-game)))
+    (let [updated-game (handle-move game-state (mouse-event-to-coord game-state e))]
+      (draw-board updated-game nil)
+      updated-game))
+
+  (defmethod mouse-event ["Go!" :mouse-moved] [e game-state]
+    (let [hover-point (mouse-event-to-coord game-state e)]
+      (if (is-move-valid game-state hover-point)
+        (draw-board game-state hover-point)
+        (draw-board game-state nil)))
+    game-state))
