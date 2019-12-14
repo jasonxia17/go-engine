@@ -84,8 +84,18 @@
             (recur (set-coord matrix (first stones-to-remove) :empty) (rest stones-to-remove)))))))
 
 (defn remove-captured-opponents
-  "Remove any choked opponent components from the board caused by stone played at [x y]"
-  [matrix [x y]])
+  "Remove any choked opponent components from the board caused by stone played at [x y].
+   All components that could potentially be removed must be a neighbor of [x y]"
+  [matrix [x y]]
+  (let [opponent-color (opposite-color (get-at-coord matrix [x y]))]
+    (loop [matrix matrix
+           neighbors-to-check (get-neighbors matrix [x y])]
+      (cond (empty? neighbors-to-check) matrix
+
+            (not= (get-at-coord matrix (first neighbors-to-check)) opponent-color)
+            (recur matrix (rest neighbors-to-check)) ; skip non-opponent neighbors
+
+            :else (recur (remove-if-choked matrix (first neighbors-to-check)) (rest neighbors-to-check))))))
 
 (defn handle-move
   "Attempts to place a stone of the current player's color at the requested location.

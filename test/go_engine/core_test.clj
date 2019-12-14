@@ -59,3 +59,41 @@
   (is (= (remove-if-choked test-board-3by3 [2 2]) [[:black :black :white]
                                                    [:empty :black :white]
                                                    [:white :white :empty]])))
+
+(deftest remove-captured-opponents-test
+  (is (= (remove-captured-opponents test-board-3by3 [2 2]) [[:black :black :empty]
+                                                            [:empty :black :empty]
+                                                            [:white :white :black]]))
+
+  (is (= (remove-captured-opponents [[:black :black :white]
+                                     [:empty :black :empty]
+                                     [:white :white :black]]
+                                    [2 2])
+         [[:black :black :white]
+          [:empty :black :empty]
+          [:white :white :black]])) ; nothing captured
+  
+  (is (= (remove-captured-opponents [[:black :black :white]
+                                     [:white :white :black]
+                                     [:empty :empty :white]]
+                                    [0 2])
+         [[:empty :empty :white]
+          [:white :white :empty]
+          [:empty :empty :white]])) ; multiple captured components
+  
+  (is (= (remove-captured-opponents [[:black :black :white]
+                                     [:white :black :white]
+                                     [:white :white :white]]
+                                    [0 2])
+         [[:empty :empty :white]
+          [:white :empty :white]
+          [:white :white :white]])) ; doesn't attempt to remove own stones, only removes opponent
+  
+  (is (= (remove-captured-opponents [[:black :black :white]
+                                     [:white :black :white]
+                                     [:white :white :white]]
+                                    [0 1])
+         [[:black :black :empty]
+          [:empty :black :empty]
+          [:empty :empty :empty]])) ; same test except black just played, so black stays alive
+  )
