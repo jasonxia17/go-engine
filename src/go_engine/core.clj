@@ -1,12 +1,12 @@
 (ns go-engine.core
   (:gen-class))
 
-(defrecord GoGame [matrix size turn]) ;GET RID OF SIZE
+(defrecord GoGame [matrix turn])
 
 (defn create-new-game
   "Creates a size x size GoGame where board is blank and it's black's turn"
   [size]
-  (GoGame. (vec (repeat size (vec (repeat size :empty)))) size :black))
+  (GoGame. (vec (repeat size (vec (repeat size :empty)))) :black))
 
 (defn get-at-coord
   "Returns the stone (or lack thereof) at the requested coordinates - :black, :white, or :empty"
