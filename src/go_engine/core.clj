@@ -18,7 +18,7 @@
   )
 
 (defn set-coord
-  "Returns the stone (or lack thereof) at the requested coordinates - :black, :white, or :empty
+  "Sets the stone (or lack thereof) at the requested coordinates - :black, :white, or :empty
    NOTE: x = row, y = col"
   [matrix [x y] val]
   (assoc matrix x (assoc (matrix x) y val)))
@@ -105,27 +105,25 @@
   [game [x y]]
   nil)
 
-;; define canvas
-(def my-canvas (canvas 900 900))
-
 ;; create window
-(def window (show-window {:canvas my-canvas 
+(def window (show-window {:canvas (canvas 900 900)
                           :window-name "Go!"
                           :state (create-new-game 19)}))
 
 (defn draw-board
   [matrix]
-  (let [dim (count matrix)
+  (let [c (canvas 900 900)
+        dim (count matrix)
         cell-width (/ 900 dim)
         padding (/ cell-width 2)
         board-width (* cell-width (dec dim))
-        stone-radius (* 0.45 cell-width)]
-    (with-canvas [c my-canvas] ;; prepare drawing context in canvas
+        stone-radius (* 0.8 cell-width)]
+    (with-canvas [c c] ;; prepare drawing context in canvas
       (translate c padding padding)
       (set-background c :yellow) ;; clear background
       (set-color c :black) ;; set color
       (set-stroke c 2.0) ;; set line width
-
+      
       ;; draw gridlines
       (doseq [x (range dim)]
         (line c (* cell-width x) 0 (* cell-width x) board-width)
@@ -137,16 +135,19 @@
         (let [stone-color (get-at-coord matrix [x y])]
           (if-not (= stone-color :empty)
             (do (set-color c stone-color)
-                (ellipse c (* cell-width x) (* cell-width y) stone-radius stone-radius))))))))
+                (ellipse c (* cell-width x) (* cell-width y) stone-radius stone-radius))))))
+    (replace-canvas window c)))
 
 (defn -main
   [& args]
+  (draw-board (:matrix (get-state window)))
+  
   (defmethod mouse-event ["Go!" :mouse-pressed] [e game-state] ;; event on mouse click
     (let [dim (count (:matrix game-state))
           cell-width (/ 900 dim)
           padding (/ cell-width 2)
           x-coord (Math/round (double (/ (- (mouse-x e) padding) cell-width)))
-          y-coord (Math/round (double (/ (- (mouse-y e) padding) cell-width)))]
-      (draw-board (:matrix game-state))
-      (println (str x-coord ", " y-coord))
-      game-state)))
+          y-coord (Math/round (double (/ (- (mouse-y e) padding) cell-width)))
+          updated-game (GoGame. (set-coord (:matrix game-state) [x-coord y-coord] :black) :black)]
+      (draw-board (:matrix updated-game))
+      updated-game)))
