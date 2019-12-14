@@ -103,7 +103,16 @@
   "Attempts to place a stone of the current player's color at the requested location.
    Returns the updated game. If the requested move is invalid, the game is returned unchanged."
   [game [x y]]
-  nil)
+  (let [{:keys [matrix turn]} game]
+    (cond (not (is-in-bounds matrix [x y])) game
+          (not= (get-at-coord matrix [x y]) :empty) game
+
+          :else (let [board-after-stone-placed (set-coord matrix [x y] turn)
+                      new-board (remove-captured-opponents board-after-stone-placed [x y])
+                      component (get-connected-component new-board [x y])]
+                  (if (is-component-choked new-board component)
+                    game ; move is invalid if resulting component has no liberties, return unchanged game
+                    (GoGame. new-board (opposite-color turn)))))))
 
 ;; create window
 (def window (show-window {:canvas (canvas 900 900)
@@ -148,6 +157,6 @@
           padding (/ cell-width 2)
           x-coord (Math/round (double (/ (- (mouse-x e) padding) cell-width)))
           y-coord (Math/round (double (/ (- (mouse-y e) padding) cell-width)))
-          updated-game (GoGame. (set-coord (:matrix game-state) [x-coord y-coord] :black) :black)]
+          updated-game (handle-move game-state [x-coord y-coord])]
       (draw-board (:matrix updated-game))
       updated-game)))
