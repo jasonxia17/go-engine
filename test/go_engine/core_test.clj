@@ -43,3 +43,19 @@
   (is (= (get-connected-component test-board-3by3 [2 0]) #{[2 0] [2 1]}))
   (is (= (get-connected-component test-board-3by3 [1 2]) #{[1 2] [0 2]}))
   (is (= (get-connected-component test-board-3by3 [2 2]) #{[2 2]})))
+
+(deftest is-component-choked-test
+  (is (= (is-component-choked test-board-3by3 (get-connected-component test-board-3by3 [0 1])) false))
+  (is (= (is-component-choked test-board-3by3 (get-connected-component test-board-3by3 [2 1])) false))
+  (is (= (is-component-choked test-board-3by3 (get-connected-component test-board-3by3 [1 2])) true))
+  (is (= (is-component-choked test-board-3by3 (get-connected-component test-board-3by3 [2 2])) true)))
+
+(deftest remove-if-choked-test
+  (is (= (remove-if-choked test-board-3by3 [0 1]) test-board-3by3))
+  (is (= (remove-if-choked test-board-3by3 [2 1]) test-board-3by3))
+  (is (= (remove-if-choked test-board-3by3 [1 2]) [[:black :black :empty]
+                                                   [:empty :black :empty]
+                                                   [:white :white :black]]))
+  (is (= (remove-if-choked test-board-3by3 [2 2]) [[:black :black :white]
+                                                   [:empty :black :white]
+                                                   [:white :white :empty]])))

@@ -15,6 +15,12 @@
   ((matrix x) y)
   )
 
+(defn set-coord
+  "Returns the stone (or lack thereof) at the requested coordinates - :black, :white, or :empty
+   NOTE: x = row, y = col"
+  [matrix [x y] val]
+  (assoc matrix x (assoc (matrix x) y val)))
+
 (defn opposite-color
   [color]
   (case color
@@ -59,13 +65,23 @@
                   (recur new-stack new-visited)))))
 
 (defn is-component-choked
-  "Determines whether the component is choked (no adjacent empty cells)
-   coords is a collection of the coordinates of the stones in the component"
-  [matrix coords])
+  "Determines whether the component is choked
+   (A component is choked if no stone in the component has an adjacent empty cell)
+   @param  stone-coords is a set of the coordinates of the stones in the component"
+  [matrix stone-coords]
+  (every? #(is-completely-surrounded matrix %) stone-coords))
 
 (defn remove-if-choked
-  "Removes the component containing [x y] from the board if it is choked, returns updated matrix"
-  [matrix [x y]])
+  "Removes the component containing [x y] from the board if it is choked, returns updated matrix.
+   If component is not choked, returns board without modifications."
+  [matrix [x y]]
+  (let [stone-coords (get-connected-component matrix [x y])]
+    (if-not (is-component-choked matrix stone-coords)
+      matrix ; don't remove unchoked component
+      (loop [matrix matrix
+             stones-to-remove (seq stone-coords)]
+        (if (empty? stones-to-remove) matrix
+            (recur (set-coord matrix (first stones-to-remove) :empty) (rest stones-to-remove)))))))
 
 (defn remove-captured-opponents
   "Remove any choked opponent components from the board caused by stone played at [x y]"
