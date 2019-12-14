@@ -9,8 +9,10 @@
   (GoGame. (vec (repeat size (vec (repeat size :empty)))) :black))
 
 (defn get-at-coord
-  "Returns the stone (or lack thereof) at the requested coordinates - :black, :white, or :empty"
+  "Returns the stone (or lack thereof) at the requested coordinates - :black, :white, or :empty
+   NOTE: x = row, y = col"
   [matrix [x y]]
+  ((matrix x) y)
   )
 
 (defn opposite-color
@@ -30,7 +32,8 @@
 (defn get-neighbors
   "Returns a list of adjacent points to [x y]
   (only the four cardinal direction, and in the bounds of the board"
-  [matrix [x y]])
+  [matrix [x y]]
+  (filter #(is-in-bounds matrix %) (list [(dec x) y] [(inc x) y] [x (dec y)] [x (inc y)])))
 
 (defn get-same-colored-neighbors
   [matrix [x y]])
